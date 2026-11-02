@@ -4,6 +4,7 @@ import { format, getDaysInMonth } from 'date-fns'
 import type { Category, MonthBudget, Recurring, Transaction } from '../lib/types'
 import { DEFAULT_CATEGORIES } from '../lib/categories'
 import { monthKeyOf, monthKeyToDate, uid } from '../lib/utils'
+import { triggerAutoSync } from '../lib/cloudSync'
 
 export type Theme = 'light' | 'dark' | 'system'
 
@@ -102,14 +103,31 @@ export const useStore = create<State>()(
 
       addTransaction: (t) => {
         const tx: Transaction = { ...t, id: uid(), createdAt: Date.now() }
-        set((s) => ({ transactions: [tx, ...s.transactions] }))
+        set((s) => {
+          const next = [tx, ...s.transactions]
+          triggerAutoSync({ transactions: next, categories: s.categories, budgets: s.budgets, recurring: s.recurring })
+          return { transactions: next }
+        })
         return tx
       },
       updateTransaction: (id, t) =>
-        set((s) => ({ transactions: s.transactions.map((x) => (x.id === id ? { ...x, ...t } : x)) })),
+        set((s) => {
+          const next = s.transactions.map((x) => (x.id === id ? { ...x, ...t } : x))
+          triggerAutoSync({ transactions: next, categories: s.categories, budgets: s.budgets, recurring: s.recurring })
+          return { transactions: next }
+        }),
       deleteTransaction: (id) =>
-        set((s) => ({ transactions: s.transactions.filter((x) => x.id !== id) })),
-      restoreTransaction: (t) => set((s) => ({ transactions: [t, ...s.transactions] })),
+        set((s) => {
+          const next = s.transactions.filter((x) => x.id !== id)
+          triggerAutoSync({ transactions: next, categories: s.categories, budgets: s.budgets, recurring: s.recurring })
+          return { transactions: next }
+        }),
+      restoreTransaction: (t) =>
+        set((s) => {
+          const next = [t, ...s.transactions]
+          triggerAutoSync({ transactions: next, categories: s.categories, budgets: s.budgets, recurring: s.recurring })
+          return { transactions: next }
+        }),
 
       addCategory: (c) => set((s) => ({ categories: [...s.categories, { ...c, id: uid() }] })),
       updateCategory: (id, c) =>
@@ -124,7 +142,12 @@ export const useStore = create<State>()(
           }
         }),
 
-      setBudget: (month, b) => set((s) => ({ budgets: { ...s.budgets, [month]: b } })),
+      setBudget: (month, b) =>
+        set((s) => {
+          const nextBudgets = { ...s.budgets, [month]: b }
+          triggerAutoSync({ transactions: s.transactions, categories: s.categories, budgets: nextBudgets, recurring: s.recurring })
+          return { budgets: nextBudgets }
+        }),
       getBudget: (month) => {
         const { budgets } = get()
         if (budgets[month]) return budgets[month]

@@ -1,9 +1,10 @@
 import { useRef, useState } from 'react'
 import { motion } from 'motion/react'
 import { toast } from 'sonner'
-import { Check, Database, Download, FileSpreadsheet, Laptop, Moon, Palette, Pencil, Plus, Sun, Trash2, Upload, Wand2, Lock, Bell, Eye, EyeOff } from 'lucide-react'
+import { Check, Database, Download, FileSpreadsheet, Laptop, Moon, Palette, Pencil, Plus, Sun, Trash2, Upload, Wand2, Lock, Bell, Eye, EyeOff, Cloud } from 'lucide-react'
 import { Modal } from '../components/Modal'
 import { PageHeader, Segmented } from '../components/ui'
+import { AuthSyncModal } from '../components/AuthSyncModal'
 import { COLORS, CategoryIcon, ICONS } from '../lib/categories'
 import type { Category, TxType } from '../lib/types'
 import { cn } from '../lib/utils'
@@ -27,6 +28,7 @@ export function Settings() {
   const togglePrivacyMode = useStore((s) => s.togglePrivacyMode)
   const [pinModal, setPinModal] = useState(false)
   const [newPin, setNewPin] = useState('')
+  const [cloudSyncOpen, setCloudSyncOpen] = useState(false)
 
   // Reminder
   const reminderEnabled = useStore((s) => s.reminderEnabled)
@@ -188,8 +190,9 @@ export function Settings() {
 
       <CategoriesSection />
 
-      <Section icon={<Database className="size-4" />} title="Dữ liệu" desc={`Tất cả dữ liệu được lưu trên thiết bị này · ${count} giao dịch`}>
+      <Section icon={<Database className="size-4" />} title="Dữ liệu & Đồng bộ" desc={`Tất cả dữ liệu được lưu trên thiết bị này · ${count} giao dịch`}>
         <div className="grid gap-3 sm:grid-cols-2">
+          <ActionBtn icon={<Cloud className="size-5 text-indigo-500" />} title="Đồng bộ Đám mây (Cloud Sync)" desc="Đăng nhập để tự đồng bộ iPhone & PC" onClick={() => setCloudSyncOpen(true)} />
           <ActionBtn icon={<FileSpreadsheet className="size-5 text-emerald-600" />} title="Xuất Excel tháng này" desc="Báo cáo tổng kết và chi tiết" onClick={() => exportMonthExcel(month)} />
           <ActionBtn icon={<Download className="size-5 text-brand-500" />} title="Sao lưu dữ liệu" desc="Tải file .json để lưu trữ" onClick={exportBackup} />
           <ActionBtn icon={<Upload className="size-5 text-sky-500" />} title="Khôi phục dữ liệu" desc="Nhập từ file sao lưu" onClick={() => fileRef.current?.click()} />
@@ -254,6 +257,8 @@ export function Settings() {
           </div>
         </div>
       </Modal>
+
+      <AuthSyncModal open={cloudSyncOpen} onClose={() => setCloudSyncOpen(false)} />
     </div>
   )
 }

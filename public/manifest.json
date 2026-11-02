@@ -1,0 +1,18 @@
+{
+  "name": "Ví Tháng – Quản lý chi tiêu",
+  "short_name": "Ví Tháng",
+  "description": "Ứng dụng quản lý tài chính và chi tiêu thông minh",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0b0d14",
+  "theme_color": "#6366f1",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -12,6 +12,7 @@ import { Settings } from './pages/Settings'
 import { TransactionForm } from './components/TransactionForm'
 import { MonthSummary } from './components/MonthSummary'
 import { PinLockScreen } from './components/PinLockScreen'
+import { InstallAppBanner } from './components/InstallAppBanner'
 import { Modal } from './components/Modal'
 import { useStore } from './store/useStore'
 import { useUI, type Page } from './store/useUI'
@@ -58,6 +59,23 @@ export default function App() {
     const n = applyRecurring(month)
     if (n) toast.info(`Đã tự động ghi ${n} khoản cố định`)
   }, [month, recurringCount, applyRecurring])
+
+  // Silently pull latest cloud data on startup if connected
+  useEffect(() => {
+    const session = localStorage.getItem('vithang_cloud_session')
+    if (session) {
+      try {
+        const { syncCode } = JSON.parse(session)
+        import('./lib/cloudSync').then(({ downloadCloudData }) => {
+          downloadCloudData(syncCode).then((res) => {
+            if (res.data) {
+              useStore.getState().importData(res.data)
+            }
+          }).catch(() => {})
+        })
+      } catch {}
+    }
+  }, [])
 
   // Keyboard shortcuts (PC): N = new transaction, 1-5 = switch page
   useEffect(() => {
@@ -150,6 +168,7 @@ export default function App() {
       <MonthSummary />
       <Welcome />
       <PinLockScreen />
+      <InstallAppBanner />
       <Toaster position="top-center" richColors theme={dark ? 'dark' : 'light'} toastOptions={{ className: 'font-sans! rounded-2xl!' }} />
     </div>
   )
